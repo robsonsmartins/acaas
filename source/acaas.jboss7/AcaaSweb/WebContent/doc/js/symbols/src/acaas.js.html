@@ -1,0 +1,880 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=UTF-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/*---------------------------------------------------------------------------*/</span><span class="WHIT">
+<span class='line'>  2</span> </span><span class="COMM">/** 
+<span class='line'>  3</span>  * @fileOverview Implementa classes para manipular consultas e respostas
+<span class='line'>  4</span>  *   de Servicos AcaaS (Accessibility as a Service).
+<span class='line'>  5</span>  * &lt;p>  
+<span class='line'>  6</span>  * Incorpora as bibliotecas:
+<span class='line'>  7</span>  * &lt;p>
+<span class='line'>  8</span>  *   &lt;b>Json2.js&lt;/b>: http://www.JSON.org/js.html&lt;br/> 
+<span class='line'>  9</span>  *   &lt;b>Queue.js&lt;/b>: http://code.stephenmorley.org&lt;br/>
+<span class='line'> 10</span>  * 
+<span class='line'> 11</span>  * @author Robson Martins (robson@robsonmartins.com)
+<span class='line'> 12</span>  * @version 1.0
+<span class='line'> 13</span>  */</span><span class="WHIT">
+<span class='line'> 14</span> </span><span class="COMM">/*---------------------------------------------------------------------------*/</span><span class="WHIT">
+<span class='line'> 15</span> </span><span class="COMM">/**
+<span class='line'> 16</span>  * @class Implementa um consumidor JavaScript do AcaaS.
+<span class='line'> 17</span>  * @constructor
+<span class='line'> 18</span>  * @description Cria um objeto para encapsular acesso ao AcaaS.
+<span class='line'> 19</span>  * @param {String} urlAcaas URL raiz do Servico AcaaS. 
+<span class='line'> 20</span>  */</span><span class="WHIT">
+<span class='line'> 21</span> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">Acaas</span><span class="PUNC">(</span><span class="NAME">urlAcaas</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 22</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">tts</span><span class="WHIT">      </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">AcaasMediaService</span><span class="PUNC">(</span><span class="NAME">urlAcaas</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"/tts"</span><span class="WHIT">     </span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 23</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">stt</span><span class="WHIT">      </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">AcaasService</span><span class="WHIT">     </span><span class="PUNC">(</span><span class="NAME">urlAcaas</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"/stt"</span><span class="WHIT">     </span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 24</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">t2libras</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">AcaasMediaService</span><span class="PUNC">(</span><span class="NAME">urlAcaas</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"/t2libras"</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 25</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">s2libras</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">AcaasMediaService</span><span class="PUNC">(</span><span class="NAME">urlAcaas</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"/s2libras"</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="WHIT">	
+<span class='line'> 27</span> 	</span><span class="COMM">/**
+<span class='line'> 28</span> 	 * @memberOf Acaas 
+<span class='line'> 29</span> 	 * @function
+<span class='line'> 30</span> 	 * @description Traduz Texto para Fala (TTS).
+<span class='line'> 31</span> 	 * @param {String} data Texto a ser traduzido.
+<span class='line'> 32</span> 	 * @param {String} mediaType Tipo MIME do formato desejado
+<span class='line'> 33</span> 	 *   para a midia (audio).
+<span class='line'> 34</span> 	 * @param {function(Blob data, JsonObject info)} [onData] Callback do evento
+<span class='line'> 35</span> 	 *   disparado quando os dados de uma midia estao disponiveis.
+<span class='line'> 36</span> 	 * @param {function()} [onFinish] Callback do evento disparado ao final
+<span class='line'> 37</span> 	 *   da traducao.
+<span class='line'> 38</span> 	 * @param {function(Number status, String statusText)} [onError] Callback
+<span class='line'> 39</span> 	 *   do evento disparado quando a requisicao resultou em erro.
+<span class='line'> 40</span> 	 */</span><span class="WHIT">
+<span class='line'> 41</span> </span><span class="WHIT">	</span><span class="NAME">this.getTTS</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 42</span> </span><span class="WHIT">		</span><span class="NAME">tts.get</span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 43</span> </span><span class="WHIT">	</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 44</span> 
+<span class='line'> 45</span> </span><span class="WHIT">	</span><span class="COMM">/**
+<span class='line'> 46</span> 	 * @memberOf Acaas 
+<span class='line'> 47</span> 	 * @function
+<span class='line'> 48</span> 	 * @description Traduz Fala para Texto (STT).
+<span class='line'> 49</span> 	 * @param {Raw} data Dados do Audio a ser traduzido.
+<span class='line'> 50</span> 	 * @param {String} mediaType Tipo MIME do formato do audio em &lt;em>data&lt;/em>.
+<span class='line'> 51</span> 	 * @param {function(JsonObject data)} [onData] Callback do evento
+<span class='line'> 52</span> 	 *   disparado quando os dados de uma midia estao disponiveis.
+<span class='line'> 53</span> 	 * @param {function()} [onFinish] Callback do evento disparado ao final
+<span class='line'> 54</span> 	 *   da traducao.
+<span class='line'> 55</span> 	 * @param {function(Number status, String statusText)} [onError] Callback
+<span class='line'> 56</span> 	 *   do evento disparado quando a requisicao resultou em erro.
+<span class='line'> 57</span> 	 */</span><span class="WHIT">
+<span class='line'> 58</span> </span><span class="WHIT">	</span><span class="NAME">this.getSTT</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 59</span> </span><span class="WHIT">		</span><span class="NAME">stt.get</span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 60</span> </span><span class="WHIT">	</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 61</span> 
+<span class='line'> 62</span> </span><span class="WHIT">	</span><span class="COMM">/**
+<span class='line'> 63</span> 	 * @memberOf Acaas 
+<span class='line'> 64</span> 	 * @function
+<span class='line'> 65</span> 	 * @description Traduz Texto para Libras (T2Libras).
+<span class='line'> 66</span> 	 * @param {String} data Texto a ser traduzido.
+<span class='line'> 67</span> 	 * @param {String} mediaType Tipo MIME do formato desejado
+<span class='line'> 68</span> 	 *   para a midia (video).
+<span class='line'> 69</span> 	 * @param {function(Blob data, JsonObject info)} [onData] Callback do evento
+<span class='line'> 70</span> 	 *   disparado quando os dados de uma midia estao disponiveis.
+<span class='line'> 71</span> 	 * @param {function()} [onFinish] Callback do evento disparado ao final
+<span class='line'> 72</span> 	 *   da traducao.
+<span class='line'> 73</span> 	 * @param {function(Number status, String statusText)} [onError] Callback
+<span class='line'> 74</span> 	 *   do evento disparado quando a requisicao resultou em erro.
+<span class='line'> 75</span> 	 */</span><span class="WHIT">
+<span class='line'> 76</span> </span><span class="WHIT">	</span><span class="NAME">this.getT2Libras</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 77</span> </span><span class="WHIT">		</span><span class="NAME">t2libras.get</span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 78</span> </span><span class="WHIT">	</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 79</span> </span><span class="WHIT">	
+<span class='line'> 80</span> 	</span><span class="COMM">/**
+<span class='line'> 81</span> 	 * @memberOf Acaas 
+<span class='line'> 82</span> 	 * @function
+<span class='line'> 83</span> 	 * @description Traduz Fala para Libras (S2Libras).
+<span class='line'> 84</span> 	 * @param {Raw} data Dados do Audio a ser traduzido.
+<span class='line'> 85</span> 	 * @param {String} iMediaType Tipo MIME do formato do audio em &lt;em>data&lt;/em>.
+<span class='line'> 86</span> 	 * @param {String} oMediaType Tipo MIME do formato desejado
+<span class='line'> 87</span> 	 *   para a midia (video).
+<span class='line'> 88</span> 	 * @param {function(Blob data, JsonObject info)} [onData] Callback do evento
+<span class='line'> 89</span> 	 *   disparado quando os dados de uma midia estao disponiveis.
+<span class='line'> 90</span> 	 * @param {function()} [onFinish] Callback do evento disparado ao final
+<span class='line'> 91</span> 	 *   da traducao.
+<span class='line'> 92</span> 	 * @param {function(Number status, String statusText)} [onError] Callback
+<span class='line'> 93</span> 	 *   do evento disparado quando a requisicao resultou em erro.
+<span class='line'> 94</span> 	 */</span><span class="WHIT">
+<span class='line'> 95</span> </span><span class="WHIT">	</span><span class="NAME">this.getS2Libras</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">iMediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">oMediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 96</span> </span><span class="WHIT">		</span><span class="NAME">s2libras.get</span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">iMediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">oMediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 97</span> </span><span class="WHIT">	</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 98</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 99</span> 
+<span class='line'>100</span> </span><span class="COMM">/*---------------------------------------------------------------------------*/</span><span class="WHIT">
+<span class='line'>101</span> </span><span class="COMM">/**
+<span class='line'>102</span>  * @class Implementa um consumidor de um Servico JSON do AcaaS.
+<span class='line'>103</span>  * @constructor
+<span class='line'>104</span>  * @description Cria um objeto para acessar servicos JSON do AcaaS.
+<span class='line'>105</span>  * @param {String} urlService URL do Servico AcaaS. 
+<span class='line'>106</span>  */</span><span class="WHIT">
+<span class='line'>107</span> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">AcaasService</span><span class="PUNC">(</span><span class="NAME">urlService</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>108</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">acaasFormatParam</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">"format"</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>109</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">acaas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">AcaasConnection</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>110</span> 
+<span class='line'>111</span> </span><span class="WHIT">	</span><span class="COMM">/**
+<span class='line'>112</span> 	 * @memberOf AcaasService 
+<span class='line'>113</span> 	 * @function
+<span class='line'>114</span> 	 * @description Consulta um servico do AcaaS e retorna a resposta
+<span class='line'>115</span> 	 *   como um Objeto JSON.
+<span class='line'>116</span> 	 * @param {Raw} data Dados para consultar.
+<span class='line'>117</span> 	 * @param {String} mediaType Tipo MIME do formato dos dados em &lt;em>data&lt;/em>.
+<span class='line'>118</span> 	 * @param {function(JsonObject data)} [onData] Callback do evento
+<span class='line'>119</span> 	 *   disparado quando os dados de uma midia estao disponiveis.
+<span class='line'>120</span> 	 * @param {function()} [onFinish] Callback do evento disparado ao final
+<span class='line'>121</span> 	 *   da traducao.
+<span class='line'>122</span> 	 * @param {function(Number status, String statusText)} [onError] Callback
+<span class='line'>123</span> 	 *   do evento disparado quando a requisicao resultou em erro.
+<span class='line'>124</span> 	 */</span><span class="WHIT">
+<span class='line'>125</span> </span><span class="WHIT">	</span><span class="NAME">this.get</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>126</span> </span><span class="WHIT">		</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">url</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">urlService</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"?"</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">acaasFormatParam</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"="</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>127</span> </span><span class="WHIT">		</span><span class="NAME">acaas.queryService</span><span class="PUNC">(</span><span class="NAME">url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>128</span> </span><span class="WHIT">				</span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">json</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> 
+<span class='line'>129</span> 					</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">onData</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">(</span><span class="NAME">json</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>130</span> </span><span class="WHIT">					</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">onFinish</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>131</span> </span><span class="WHIT">				</span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>132</span> </span><span class="WHIT">				</span><span class="NAME">onError</span><span class="WHIT">
+<span class='line'>133</span> </span><span class="WHIT">		</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">		
+<span class='line'>134</span> 	</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>135</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>136</span> 
+<span class='line'>137</span> </span><span class="COMM">/*---------------------------------------------------------------------------*/</span><span class="WHIT">
+<span class='line'>138</span> </span><span class="COMM">/**
+<span class='line'>139</span>  * @class Implementa um consumidor de um Servico de Midia do AcaaS.
+<span class='line'>140</span>  * @constructor
+<span class='line'>141</span>  * @description Cria um objeto para acessar servicos de Midia do AcaaS.
+<span class='line'>142</span>  * @param {String} urlService URL do Servico AcaaS. 
+<span class='line'>143</span>  */</span><span class="WHIT">
+<span class='line'>144</span> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">AcaasMediaService</span><span class="PUNC">(</span><span class="NAME">urlService</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>145</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">urlMedia</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">urlService</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"/media"</span><span class="PUNC">;</span><span class="WHIT"> 
+<span class='line'>146</span> 	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">acaasFormatParam</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">"format"</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>147</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">acaasIformatParam</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">"iformat"</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>148</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">acaasOformatParam</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">"oformat"</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>149</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">mediaCount</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>150</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">jsonData</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>151</span> </span><span class="WHIT">	</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">acaas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">AcaasConnection</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>152</span> 
+<span class='line'>153</span> </span><span class="WHIT">	</span><span class="COMM">/**
+<span class='line'>154</span> 	 * @memberOf AcaasMediaService 
+<span class='line'>155</span> 	 * @function
+<span class='line'>156</span> 	 * @description Consulta um servico do AcaaS e retorna a resposta de
+<span class='line'>157</span> 	 *   midia como um Blob.
+<span class='line'>158</span> 	 * @param {Raw} [data] Dados para consultar.
+<span class='line'>159</span> 	 * @param {String} [iMediaType] Tipo MIME do formato dos dados em &lt;em>data&lt;/em>.
+<span class='line'>160</span> 	 * @param {String} [oMediaType] Tipo MIME do formato desejado para a midia.
+<span class='line'>161</span> 	 * @param {function(Blob data, JsonObject info)} [onData] Callback do evento
+<span class='line'>162</span> 	 *   disparado quando os dados de uma midia estao disponiveis.
+<span class='line'>163</span> 	 * @param {function()} [onFinish] Callback do evento disparado ao final
+<span class='line'>164</span> 	 *   da traducao.
+<span class='line'>165</span> 	 * @param {function(Number status, String statusText)} [onError] Callback
+<span class='line'>166</span> 	 *   do evento disparado quando a requisicao resultou em erro.
+<span class='line'>167</span> 	 */</span><span class="WHIT">
+<span class='line'>168</span> </span><span class="WHIT">	</span><span class="NAME">this.get</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">iMediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">oMediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>169</span> </span><span class="WHIT">		</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">url</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">urlService</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>170</span> </span><span class="WHIT">		</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>171</span> </span><span class="WHIT">		</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">iMediaType</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">oMediaType</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>172</span> </span><span class="WHIT">			</span><span class="NAME">url</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">"?"</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">acaasIformatParam</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"="</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">iMediaType</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"&"</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> 
+<span class='line'>173</span> 						 </span><span class="NAME">acaasOformatParam</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"="</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">oMediaType</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>174</span> </span><span class="WHIT">			</span><span class="NAME">mediaType</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">oMediaType</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>175</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">iMediaType</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>176</span> </span><span class="WHIT">			</span><span class="NAME">url</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">"?"</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">acaasFormatParam</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"="</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">iMediaType</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>177</span> </span><span class="WHIT">			</span><span class="NAME">mediaType</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">iMediaType</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>178</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">oMediaType</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>179</span> </span><span class="WHIT">			</span><span class="NAME">url</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">"?"</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">acaasFormatParam</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"="</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">oMediaType</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>180</span> </span><span class="WHIT">			</span><span class="NAME">mediaType</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">oMediaType</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>181</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>182</span> </span><span class="WHIT">		</span><span class="NAME">acaas.queryService</span><span class="PUNC">(</span><span class="NAME">url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>183</span> </span><span class="WHIT">				</span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">json</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> 
+<span class='line'>184</span> 					</span><span class="NAME">jsonData</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">json</span><span class="PUNC">;</span><span class="WHIT"> 
+<span class='line'>185</span> 					</span><span class="NAME">mediaCount</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT"> 
+<span class='line'>186</span> 					</span><span class="NAME">getMediaData</span><span class="PUNC">(</span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> 
+<span class='line'>187</span> 				</span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>188</span> </span><span class="WHIT">				</span><span class="NAME">onError</span><span class="WHIT">
+<span class='line'>189</span> </span><span class="WHIT">		</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">		
+<span class='line'>190</span> 	</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>191</span> </span><span class="WHIT">	
+<span class='line'>192</span> 	</span><span class="COMM">/** @private */</span><span class="WHIT">
+<span class='line'>193</span> </span><span class="WHIT">	</span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">getMediaData</span><span class="PUNC">(</span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>194</span> </span><span class="WHIT">		</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">jsonData</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">jsonData.items</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> 
+<span class='line'>195</span> 				</span><span class="NAME">mediaCount</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">jsonData.items.length</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>196</span> </span><span class="WHIT">			</span><span class="NAME">mediaCount</span><span class="PUNC">++</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>197</span> </span><span class="WHIT">			</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">url</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">urlMedia</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">"/"</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">jsonData.items</span><span class="PUNC">[</span><span class="NAME">mediaCount</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">media</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>198</span> </span><span class="WHIT">			</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">info</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">jsonData.items</span><span class="PUNC">[</span><span class="NAME">mediaCount</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>199</span> </span><span class="WHIT">			</span><span class="NAME">acaas.getMedia</span><span class="PUNC">(</span><span class="NAME">url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">info</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>200</span> </span><span class="WHIT">					</span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">mediaData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaInfo</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>201</span> </span><span class="WHIT">						</span><span class="NAME">processMedia</span><span class="PUNC">(</span><span class="NAME">mediaData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaInfo</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">	
+<span class='line'>202</span> 					</span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>203</span> </span><span class="WHIT">					</span><span class="NAME">onError</span><span class="WHIT">
+<span class='line'>204</span> </span><span class="WHIT">			</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>205</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>206</span> </span><span class="WHIT">			</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">onFinish</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>207</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>208</span> </span><span class="WHIT">	</span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>209</span> </span><span class="WHIT">	
+<span class='line'>210</span> 	</span><span class="COMM">/** @private */</span><span class="WHIT">
+<span class='line'>211</span> </span><span class="WHIT">	</span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">processMedia</span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">info</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>212</span> </span><span class="WHIT">		</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">onData</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">info</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>213</span> </span><span class="WHIT">		</span><span class="NAME">getMediaData</span><span class="PUNC">(</span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onFinish</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>214</span> </span><span class="WHIT">	</span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>215</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>216</span> 
+<span class='line'>217</span> </span><span class="COMM">/*---------------------------------------------------------------------------*/</span><span class="WHIT">
+<span class='line'>218</span> </span><span class="COMM">/**
+<span class='line'>219</span>  * @class Implementa conexao HTTP a um Servico AcaaS.
+<span class='line'>220</span>  * @constructor
+<span class='line'>221</span>  * @description Cria um objeto para conectar a um servico AcaaS.
+<span class='line'>222</span>  */</span><span class="WHIT">
+<span class='line'>223</span> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">AcaasConnection</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>224</span> </span><span class="WHIT">	</span><span class="COMM">/**
+<span class='line'>225</span> 	 * @memberOf AcaasConnection 
+<span class='line'>226</span> 	 * @function
+<span class='line'>227</span> 	 * @description Consulta um servico do AcaaS (via HTTP POST),
+<span class='line'>228</span> 	 *   e retorna a resposta como um Objeto JSON.
+<span class='line'>229</span> 	 * @param {String} url URL do Servico AcaaS,
+<span class='line'>230</span> 	 *   contendo todos parametros necessarios.
+<span class='line'>231</span> 	 * @param {Raw} data Dados para consultar (corpo da requisicao HTTP POST).
+<span class='line'>232</span> 	 * @param {boolean} [async] Indica se a requisicao sera' assincrona.
+<span class='line'>233</span> 	 * @param {function(JsonObject data)} [onData] Callback do evento
+<span class='line'>234</span> 	 *   disparado quando os dados de uma midia estao disponiveis.
+<span class='line'>235</span> 	 * @param {function(Number status, String statusText)} [onError] Callback
+<span class='line'>236</span> 	 *   do evento disparado quando a requisicao resultou em erro.
+<span class='line'>237</span> 	 */</span><span class="WHIT">
+<span class='line'>238</span> </span><span class="WHIT">	</span><span class="NAME">this.queryService</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">async</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>239</span> </span><span class="WHIT">		</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">async</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">async</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>240</span> </span><span class="WHIT">		</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">xhttp</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">XMLHttpRequest</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>241</span> </span><span class="WHIT">		</span><span class="NAME">xhttp.open</span><span class="PUNC">(</span><span class="STRN">'POST'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">async</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>242</span> </span><span class="WHIT">		</span><span class="COMM">/** @private */</span><span class="WHIT">
+<span class='line'>243</span> </span><span class="WHIT">		</span><span class="NAME">xhttp.onload</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>244</span> </span><span class="WHIT">			</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">jsonStr</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.response</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>245</span> </span><span class="WHIT">			</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">json</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>246</span> </span><span class="WHIT">			</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">jsonStr</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">json</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">JSON.parse</span><span class="PUNC">(</span><span class="NAME">jsonStr</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>247</span> </span><span class="WHIT">			</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">onData</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">(</span><span class="NAME">json</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>248</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT"> 
+<span class='line'>249</span> 		</span><span class="COMM">/** @private */</span><span class="WHIT">
+<span class='line'>250</span> </span><span class="WHIT">		</span><span class="NAME">xhttp.onerror</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>251</span> </span><span class="WHIT">			</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">reqStatus</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.status</span><span class="PUNC">;</span><span class="WHIT"> 
+<span class='line'>252</span> 			</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">reqStatusText</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.statusText</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>253</span> </span><span class="WHIT">			</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">(</span><span class="NAME">reqStatus</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">reqStatusText</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>254</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>255</span> </span><span class="WHIT">		</span><span class="NAME">xhttp.send</span><span class="PUNC">(</span><span class="NAME">data</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>256</span> </span><span class="WHIT">	</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>257</span> </span><span class="WHIT">	
+<span class='line'>258</span> 	</span><span class="COMM">/**
+<span class='line'>259</span> 	 * @memberOf AcaasConnection 
+<span class='line'>260</span> 	 * @function
+<span class='line'>261</span> 	 * @description Consulta um servico de midia do AcaaS (via HTTP GET),
+<span class='line'>262</span> 	 *   e retorna a resposta como um Blob.
+<span class='line'>263</span> 	 * @param {String} url URL do Servico AcaaS,
+<span class='line'>264</span> 	 *   contendo todos parametros necessarios.
+<span class='line'>265</span> 	 * @param {JsonObject} [info] Objeto JSON com informacoes sobre a midia
+<span class='line'>266</span> 	 *   requisitada.
+<span class='line'>267</span> 	 * @param {String} mediaType Tipo MIME do formato desejado para a midia.
+<span class='line'>268</span> 	 * @param {boolean} [async] Indica se a requisicao sera' assincrona.
+<span class='line'>269</span> 	 * @param {function(Blob data, JsonObject info)} [onData] Callback do evento
+<span class='line'>270</span> 	 *   disparado quando os dados de uma midia estao disponiveis.
+<span class='line'>271</span> 	 * @param {function(Number status, String statusText)} [onError] Callback
+<span class='line'>272</span> 	 *   do evento disparado quando a requisicao resultou em erro.
+<span class='line'>273</span> 	 */</span><span class="WHIT">
+<span class='line'>274</span> </span><span class="WHIT">	</span><span class="NAME">this.getMedia</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">info</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">async</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>275</span> </span><span class="WHIT">		</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">async</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">async</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>276</span> </span><span class="WHIT">		</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">xhttp</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">XMLHttpRequest</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>277</span> </span><span class="WHIT">		</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="STRN">"withCredentials"</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">xhttp</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>278</span> </span><span class="WHIT">			</span><span class="NAME">xhttp.open</span><span class="PUNC">(</span><span class="STRN">'GET'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">async</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>279</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">XDomainRequest</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="STRN">"undefined"</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>280</span> </span><span class="WHIT">			</span><span class="NAME">xhttp</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">XDomainRequest</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>281</span> </span><span class="WHIT">			</span><span class="NAME">xhttp.open</span><span class="PUNC">(</span><span class="STRN">'GET'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">url</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>282</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>283</span> </span><span class="WHIT">		</span><span class="NAME">xhttp.onload</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>284</span> </span><span class="WHIT">			</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">blob</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>285</span> </span><span class="WHIT">			</span><span class="KEYW">try</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>286</span> </span><span class="WHIT">				</span><span class="NAME">blob</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">Blob</span><span class="PUNC">(</span><span class="PUNC">[</span><span class="NAME">this.response</span><span class="PUNC">]</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="NAME">type</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">mediaType</span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>287</span> </span><span class="WHIT">			</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">catch</span><span class="PUNC">(</span><span class="NAME">e</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>288</span> </span><span class="WHIT">				</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">blobBuilder</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>289</span> </span><span class="WHIT">				</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">BlobBuilder</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="STRN">"undefined"</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>290</span> </span><span class="WHIT">					</span><span class="NAME">blobBuilder</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">BlobBuilder</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>291</span> </span><span class="WHIT">				</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">WebKitBlobBuilder</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="STRN">"undefined"</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>292</span> </span><span class="WHIT">					</span><span class="NAME">blobBuilder</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">WebKitBlobBuilder</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>293</span> </span><span class="WHIT">				</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">MozBlobBuilder</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="STRN">"undefined"</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>294</span> </span><span class="WHIT">					</span><span class="NAME">blobBuilder</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">MozBlobBuilder</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>295</span> </span><span class="WHIT">				</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">MSBlobBuilder</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="STRN">"undefined"</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>296</span> </span><span class="WHIT">					</span><span class="NAME">blobBuilder</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">MSBlobBuilder</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>297</span> </span><span class="WHIT">				</span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>298</span> </span><span class="WHIT">				</span><span class="NAME">blobBuilder.append</span><span class="PUNC">(</span><span class="NAME">this.response</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>299</span> </span><span class="WHIT">				</span><span class="NAME">blob</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">blobBuilder.getBlob</span><span class="PUNC">(</span><span class="NAME">mediaType</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>300</span> </span><span class="WHIT">			</span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>301</span> </span><span class="WHIT">			</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">onData</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">onData</span><span class="PUNC">(</span><span class="NAME">blob</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">info</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>302</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>303</span> </span><span class="WHIT">		</span><span class="COMM">/** @private */</span><span class="WHIT">
+<span class='line'>304</span> </span><span class="WHIT">		</span><span class="NAME">xhttp.onerror</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>305</span> </span><span class="WHIT">			</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">reqStatus</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.status</span><span class="PUNC">;</span><span class="WHIT"> 
+<span class='line'>306</span> 			</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">reqStatusText</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.statusText</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>307</span> </span><span class="WHIT">			</span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">onError</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">onError</span><span class="PUNC">(</span><span class="NAME">reqStatus</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">reqStatusText</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>308</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>309</span> </span><span class="WHIT">		</span><span class="KEYW">try</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>310</span> </span><span class="WHIT">			</span><span class="NAME">xhttp.responseType</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">"arraybuffer"</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>311</span> </span><span class="WHIT">			</span><span class="NAME">xhttp.send</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>312</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">catch</span><span class="PUNC">(</span><span class="NAME">e</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>313</span> </span><span class="WHIT">			</span><span class="NAME">xhttp.responseType</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">""</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>314</span> </span><span class="WHIT">			</span><span class="NAME">xhttp.send</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>315</span> </span><span class="WHIT">		</span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>316</span> </span><span class="WHIT">	</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>317</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>318</span> 
+<span class='line'>319</span> </span><span class="COMM">/*-----------------------------------------------------------------------------
+<span class='line'>320</span>  * json2.js
+<span class='line'>321</span>  * 2013-05-26
+<span class='line'>322</span>  * Public Domain.
+<span class='line'>323</span>  * NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+<span class='line'>324</span>  * See http://www.JSON.org/js.html
+<span class='line'>325</span>  * 
+<span class='line'>326</span>  * This code should be minified before deployment.
+<span class='line'>327</span>  * See http://javascript.crockford.com/jsmin.html
+<span class='line'>328</span>  * 
+<span class='line'>329</span>  * USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
+<span class='line'>330</span>  * NOT CONTROL.
+<span class='line'>331</span>  * 
+<span class='line'>332</span>  * This file creates a global JSON object containing two methods: stringify 
+<span class='line'>333</span>  * and parse.
+<span class='line'>334</span>  * 
+<span class='line'>335</span>  * JSON.stringify(value, replacer, space)
+<span class='line'>336</span>  * value any JavaScript value, usually an object or array.
+<span class='line'>337</span>  * 
+<span class='line'>338</span>  * replacer an optional parameter that determines how object
+<span class='line'>339</span>  * values are stringified for objects. It can be a
+<span class='line'>340</span>  * function or an array of strings.
+<span class='line'>341</span>  * 
+<span class='line'>342</span>  * space an optional parameter that specifies the indentation
+<span class='line'>343</span>  * of nested structures. If it is omitted, the text will
+<span class='line'>344</span>  * be packed without extra whitespace. If it is a number,
+<span class='line'>345</span>  * it will specify the number of spaces to indent at each
+<span class='line'>346</span>  * level. If it is a string (such as '\t' or '&nbsp;'),
+<span class='line'>347</span>  * it contains the characters used to indent at each level.
+<span class='line'>348</span>  * This method produces a JSON text from a JavaScript value.
+<span class='line'>349</span>  * 
+<span class='line'>350</span>  * When an object value is found, if the object contains a toJSON
+<span class='line'>351</span>  * method, its toJSON method will be called and the result will be
+<span class='line'>352</span>  * stringified. A toJSON method does not serialize: it returns the
+<span class='line'>353</span>  * value represented by the name/value pair that should be serialized,
+<span class='line'>354</span>  * or undefined if nothing should be serialized. The toJSON method
+<span class='line'>355</span>  * will be passed the key associated with the value, and this will be
+<span class='line'>356</span>  * bound to the value
+<span class='line'>357</span>  * 
+<span class='line'>358</span>  * For example, this would serialize Dates as ISO strings.
+<span class='line'>359</span>  * 
+<span class='line'>360</span>  * Date.prototype.toJSON = function (key) {
+<span class='line'>361</span>  * function f(n) {
+<span class='line'>362</span>  * // Format integers to have at least two digits.
+<span class='line'>363</span>  * return n &lt; 10 ? '0' + n : n;
+<span class='line'>364</span>  * }
+<span class='line'>365</span>  * return this.getUTCFullYear() + '-' +
+<span class='line'>366</span>  * f(this.getUTCMonth() + 1) + '-' +
+<span class='line'>367</span>  * f(this.getUTCDate()) + 'T' +
+<span class='line'>368</span>  * f(this.getUTCHours()) + ':' +
+<span class='line'>369</span>  * f(this.getUTCMinutes()) + ':' +
+<span class='line'>370</span>  * f(this.getUTCSeconds()) + 'Z';
+<span class='line'>371</span>  * };
+<span class='line'>372</span>  * 
+<span class='line'>373</span>  * You can provide an optional replacer method. It will be passed the
+<span class='line'>374</span>  * key and value of each member, with this bound to the containing
+<span class='line'>375</span>  * object. The value that is returned from your method will be
+<span class='line'>376</span>  * serialized. If your method returns undefined, then the member will
+<span class='line'>377</span>  * be excluded from the serialization.
+<span class='line'>378</span>  * 
+<span class='line'>379</span>  * If the replacer parameter is an array of strings, then it will be
+<span class='line'>380</span>  * used to select the members to be serialized. It filters the results
+<span class='line'>381</span>  * such that only members with keys listed in the replacer array are
+<span class='line'>382</span>  * stringified.
+<span class='line'>383</span>  * 
+<span class='line'>384</span>  * Values that do not have JSON representations, such as undefined or
+<span class='line'>385</span>  * functions, will not be serialized. Such values in objects will be
+<span class='line'>386</span>  * dropped; in arrays they will be replaced with null. You can use
+<span class='line'>387</span>  * a replacer function to replace those with JSON values.
+<span class='line'>388</span>  * JSON.stringify(undefined) returns undefined.
+<span class='line'>389</span>  * 
+<span class='line'>390</span>  * The optional space parameter produces a stringification of the
+<span class='line'>391</span>  * value that is filled with line breaks and indentation to make it
+<span class='line'>392</span>  * easier to read.
+<span class='line'>393</span>  * 
+<span class='line'>394</span>  * If the space parameter is a non-empty string, then that string will
+<span class='line'>395</span>  * be used for indentation. If the space parameter is a number, then
+<span class='line'>396</span>  * the indentation will be that many spaces.
+<span class='line'>397</span>  * 
+<span class='line'>398</span>  * Example:
+<span class='line'>399</span>  * text = JSON.stringify(['e', {pluribus: 'unum'}]);
+<span class='line'>400</span>  * // text is '["e",{"pluribus":"unum"}]'
+<span class='line'>401</span>  * 
+<span class='line'>402</span>  * text = JSON.stringify(['e', {pluribus: 'unum'}], null, '\t');
+<span class='line'>403</span>  * // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
+<span class='line'>404</span>  * 
+<span class='line'>405</span>  * text = JSON.stringify([new Date()], function (key, value) {
+<span class='line'>406</span>  * return this[key] instanceof Date ?
+<span class='line'>407</span>  * 'Date(' + this[key] + ')' : value;
+<span class='line'>408</span>  * });
+<span class='line'>409</span>  * // text is '["Date(---current time---)"]'
+<span class='line'>410</span>  * 
+<span class='line'>411</span>  * JSON.parse(text, reviver)
+<span class='line'>412</span>  * This method parses a JSON text to produce an object or array.
+<span class='line'>413</span>  * It can throw a SyntaxError exception.
+<span class='line'>414</span>  * 
+<span class='line'>415</span>  * The optional reviver parameter is a function that can filter and
+<span class='line'>416</span>  * transform the results. It receives each of the keys and values,
+<span class='line'>417</span>  * and its return value is used instead of the original value.
+<span class='line'>418</span>  * If it returns what it received, then the structure is not modified.
+<span class='line'>419</span>  * If it returns undefined then the member is deleted.
+<span class='line'>420</span>  * 
+<span class='line'>421</span>  * Example:
+<span class='line'>422</span>  * // Parse the text. Values that look like ISO date strings will
+<span class='line'>423</span>  * // be converted to Date objects.
+<span class='line'>424</span>  * myData = JSON.parse(text, function (key, value) {
+<span class='line'>425</span>  * var a;
+<span class='line'>426</span>  * if (typeof value === 'string') {
+<span class='line'>427</span>  * a =
+<span class='line'>428</span>  * /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+<span class='line'>429</span>  * if (a) {
+<span class='line'>430</span>  * return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
+<span class='line'>431</span>  * +a[5], +a[6]));
+<span class='line'>432</span>  * }
+<span class='line'>433</span>  * }
+<span class='line'>434</span>  * return value;
+<span class='line'>435</span>  * });
+<span class='line'>436</span>  * 
+<span class='line'>437</span>  * myData = JSON.parse('["Date(09/09/2001)"]', function (key, value) {
+<span class='line'>438</span>  * var d;
+<span class='line'>439</span>  * if (typeof value === 'string' &&
+<span class='line'>440</span>  * value.slice(0, 5) === 'Date(' &&
+<span class='line'>441</span>  * value.slice(-1) === ')') {
+<span class='line'>442</span>  * d = new Date(value.slice(5, -1));
+<span class='line'>443</span>  * if (d) {
+<span class='line'>444</span>  * return d;
+<span class='line'>445</span>  * }
+<span class='line'>446</span>  * }
+<span class='line'>447</span>  * return value;
+<span class='line'>448</span>  * });
+<span class='line'>449</span>  * 
+<span class='line'>450</span>  * This is a reference implementation. You are free to copy, modify, or
+<span class='line'>451</span>  * redistribute.
+<span class='line'>452</span>  * 
+<span class='line'>453</span>  * jslint evil: true, regexp: true
+<span class='line'>454</span>  * 
+<span class='line'>455</span>  * members "", "\b", "\t", "\n", "\f", "\r", "\"", JSON, "\\", apply,
+<span class='line'>456</span>  * call, charCodeAt, getUTCDate, getUTCFullYear, getUTCHours,
+<span class='line'>457</span>  * getUTCMinutes, getUTCMonth, getUTCSeconds, hasOwnProperty, join,
+<span class='line'>458</span>  * lastIndex, length, parse, prototype, push, replace, slice, stringify,
+<span class='line'>459</span>  * test, toJSON, toString, valueOf
+<span class='line'>460</span>  * 
+<span class='line'>461</span>  *---------------------------------------------------------------------------*/</span><span class="WHIT">
+<span class='line'>462</span> 
+<span class='line'>463</span> </span><span class="COMM">// Create a JSON object only if one does not already exist. We create the</span><span class="WHIT">
+<span class='line'>464</span> </span><span class="COMM">// methods in a closure to avoid creating global variables.</span><span class="WHIT">
+<span class='line'>465</span> 
+<span class='line'>466</span> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">JSON</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="STRN">'object'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>467</span> </span><span class="WHIT">    </span><span class="NAME">JSON</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>468</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>469</span> 
+<span class='line'>470</span> </span><span class="PUNC">(</span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>471</span> </span><span class="WHIT">    </span><span class="STRN">'use strict'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>472</span> 
+<span class='line'>473</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">f</span><span class="PUNC">(</span><span class="NAME">n</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>474</span> </span><span class="WHIT">        </span><span class="COMM">// Format integers to have at least two digits.</span><span class="WHIT">
+<span class='line'>475</span> </span><span class="WHIT">        </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">n</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">10</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="STRN">'0'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">n</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">n</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>476</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>477</span> 
+<span class='line'>478</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">Date.prototype.toJSON</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="STRN">'function'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>479</span> 
+<span class='line'>480</span> </span><span class="WHIT">        </span><span class="NAME">Date.prototype.toJSON</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>481</span> 
+<span class='line'>482</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">isFinite</span><span class="PUNC">(</span><span class="NAME">this.valueOf</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'>483</span> </span><span class="WHIT">                </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">this.getUTCFullYear</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'-'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>484</span> </span><span class="WHIT">                    </span><span class="NAME">f</span><span class="PUNC">(</span><span class="NAME">this.getUTCMonth</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'-'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>485</span> </span><span class="WHIT">                    </span><span class="NAME">f</span><span class="PUNC">(</span><span class="NAME">this.getUTCDate</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'T'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>486</span> </span><span class="WHIT">                    </span><span class="NAME">f</span><span class="PUNC">(</span><span class="NAME">this.getUTCHours</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">':'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>487</span> </span><span class="WHIT">                    </span><span class="NAME">f</span><span class="PUNC">(</span><span class="NAME">this.getUTCMinutes</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">':'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>488</span> </span><span class="WHIT">                    </span><span class="NAME">f</span><span class="PUNC">(</span><span class="NAME">this.getUTCSeconds</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'Z'</span><span class="WHIT">
+<span class='line'>489</span> </span><span class="WHIT">                </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>490</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>491</span> 
+<span class='line'>492</span> </span><span class="WHIT">        </span><span class="NAME">String.prototype.toJSON</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>493</span> </span><span class="WHIT">            </span><span class="NAME">Number.prototype.toJSON</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>494</span> </span><span class="WHIT">            </span><span class="NAME">Boolean.prototype.toJSON</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>495</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.valueOf</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>496</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>497</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>498</span> 
+<span class='line'>499</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">cx</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="REGX">/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>500</span> </span><span class="WHIT">        </span><span class="NAME">escapable</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="REGX">/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>501</span> </span><span class="WHIT">        </span><span class="NAME">gap</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>502</span> </span><span class="WHIT">        </span><span class="NAME">indent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>503</span> </span><span class="WHIT">        </span><span class="NAME">meta</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="COMM">// table of character substitutions</span><span class="WHIT">
+<span class='line'>504</span> </span><span class="WHIT">            </span><span class="STRN">'\b'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'\\b'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>505</span> </span><span class="WHIT">            </span><span class="STRN">'\t'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'\\t'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>506</span> </span><span class="WHIT">            </span><span class="STRN">'\n'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'\\n'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>507</span> </span><span class="WHIT">            </span><span class="STRN">'\f'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'\\f'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>508</span> </span><span class="WHIT">            </span><span class="STRN">'\r'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'\\r'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>509</span> </span><span class="WHIT">            </span><span class="STRN">'"'</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'\\"'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>510</span> </span><span class="WHIT">            </span><span class="STRN">'\\'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'\\\\'</span><span class="WHIT">
+<span class='line'>511</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>512</span> </span><span class="WHIT">        </span><span class="NAME">rep</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>513</span> 
+<span class='line'>514</span> 
+<span class='line'>515</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">quote</span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>516</span> 
+<span class='line'>517</span> </span><span class="COMM">// If the string contains no control characters, no quote characters, and no</span><span class="WHIT">
+<span class='line'>518</span> </span><span class="COMM">// backslash characters, then we can safely slap some quotes around it.</span><span class="WHIT">
+<span class='line'>519</span> </span><span class="COMM">// Otherwise we must also replace the offending characters with safe escape</span><span class="WHIT">
+<span class='line'>520</span> </span><span class="COMM">// sequences.</span><span class="WHIT">
+<span class='line'>521</span> 
+<span class='line'>522</span> </span><span class="WHIT">        </span><span class="NAME">escapable.lastIndex</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>523</span> </span><span class="WHIT">        </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">escapable.test</span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="STRN">'"'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">string.replace</span><span class="PUNC">(</span><span class="NAME">escapable</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">a</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>524</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">c</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">meta</span><span class="PUNC">[</span><span class="NAME">a</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>525</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">c</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'string'</span><span class="WHIT">
+<span class='line'>526</span> </span><span class="WHIT">                </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">c</span><span class="WHIT">
+<span class='line'>527</span> </span><span class="WHIT">                </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'\\u'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="STRN">'0000'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">a.charCodeAt</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">toString</span><span class="PUNC">(</span><span class="NUMB">16</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">slice</span><span class="PUNC">(</span><span class="PUNC">-</span><span class="NUMB">4</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>528</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'"'</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'"'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">string</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'"'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>529</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>530</span> 
+<span class='line'>531</span> 
+<span class='line'>532</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">str</span><span class="PUNC">(</span><span class="NAME">key</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">holder</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>533</span> 
+<span class='line'>534</span> </span><span class="COMM">// Produce a string from holder[key].</span><span class="WHIT">
+<span class='line'>535</span> 
+<span class='line'>536</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="COMM">// The loop counter.</span><span class="WHIT">
+<span class='line'>537</span> </span><span class="WHIT">            </span><span class="NAME">k</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="COMM">// The member key.</span><span class="WHIT">
+<span class='line'>538</span> </span><span class="WHIT">            </span><span class="NAME">v</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="COMM">// The member value.</span><span class="WHIT">
+<span class='line'>539</span> </span><span class="WHIT">            </span><span class="NAME">length</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>540</span> </span><span class="WHIT">            </span><span class="NAME">mind</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">gap</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>541</span> </span><span class="WHIT">            </span><span class="NAME">partial</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>542</span> </span><span class="WHIT">            </span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">holder</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>543</span> 
+<span class='line'>544</span> </span><span class="COMM">// If the value has a toJSON method, call it to obtain a replacement value.</span><span class="WHIT">
+<span class='line'>545</span> 
+<span class='line'>546</span> </span><span class="WHIT">        </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'object'</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT">
+<span class='line'>547</span> </span><span class="WHIT">                </span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">value.toJSON</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'function'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>548</span> </span><span class="WHIT">            </span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">value.toJSON</span><span class="PUNC">(</span><span class="NAME">key</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>549</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>550</span> 
+<span class='line'>551</span> </span><span class="COMM">// If we were called with a replacer function, then call the replacer to</span><span class="WHIT">
+<span class='line'>552</span> </span><span class="COMM">// obtain a replacement value.</span><span class="WHIT">
+<span class='line'>553</span> 
+<span class='line'>554</span> </span><span class="WHIT">        </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">rep</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'function'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>555</span> </span><span class="WHIT">            </span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">rep.call</span><span class="PUNC">(</span><span class="NAME">holder</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">key</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>556</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>557</span> 
+<span class='line'>558</span> </span><span class="COMM">// What happens next depends on the value's type.</span><span class="WHIT">
+<span class='line'>559</span> 
+<span class='line'>560</span> </span><span class="WHIT">        </span><span class="KEYW">switch</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>561</span> </span><span class="WHIT">        </span><span class="KEYW">case</span><span class="WHIT"> </span><span class="STRN">'string'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'>562</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">quote</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>563</span> 
+<span class='line'>564</span> </span><span class="WHIT">        </span><span class="KEYW">case</span><span class="WHIT"> </span><span class="STRN">'number'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'>565</span> 
+<span class='line'>566</span> </span><span class="COMM">// JSON numbers must be finite. Encode non-finite numbers as null.</span><span class="WHIT">
+<span class='line'>567</span> 
+<span class='line'>568</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">isFinite</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">String</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'null'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>569</span> 
+<span class='line'>570</span> </span><span class="WHIT">        </span><span class="KEYW">case</span><span class="WHIT"> </span><span class="STRN">'boolean'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'>571</span> </span><span class="WHIT">        </span><span class="KEYW">case</span><span class="WHIT"> </span><span class="STRN">'null'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'>572</span> 
+<span class='line'>573</span> </span><span class="COMM">// If the value is a boolean or null, convert it to a string. Note:</span><span class="WHIT">
+<span class='line'>574</span> </span><span class="COMM">// typeof null does not produce 'null'. The case is included here in</span><span class="WHIT">
+<span class='line'>575</span> </span><span class="COMM">// the remote chance that this gets fixed someday.</span><span class="WHIT">
+<span class='line'>576</span> 
+<span class='line'>577</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">String</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>578</span> 
+<span class='line'>579</span> </span><span class="COMM">// If the type is 'object', we might be dealing with an object or an array or</span><span class="WHIT">
+<span class='line'>580</span> </span><span class="COMM">// null.</span><span class="WHIT">
+<span class='line'>581</span> 
+<span class='line'>582</span> </span><span class="WHIT">        </span><span class="KEYW">case</span><span class="WHIT"> </span><span class="STRN">'object'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'>583</span> 
+<span class='line'>584</span> </span><span class="COMM">// Due to a specification blunder in ECMAScript, typeof null is 'object',</span><span class="WHIT">
+<span class='line'>585</span> </span><span class="COMM">// so watch out for that case.</span><span class="WHIT">
+<span class='line'>586</span> 
+<span class='line'>587</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>588</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="STRN">'null'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>589</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>590</span> 
+<span class='line'>591</span> </span><span class="COMM">// Make an array to hold the partial results of stringifying this object value.</span><span class="WHIT">
+<span class='line'>592</span> 
+<span class='line'>593</span> </span><span class="WHIT">            </span><span class="NAME">gap</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">indent</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>594</span> </span><span class="WHIT">            </span><span class="NAME">partial</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>595</span> 
+<span class='line'>596</span> </span><span class="COMM">// Is the value an array?</span><span class="WHIT">
+<span class='line'>597</span> 
+<span class='line'>598</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">Object.prototype.toString.apply</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'[object Array]'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>599</span> 
+<span class='line'>600</span> </span><span class="COMM">// The value is an array. Stringify every element. Use null as a placeholder</span><span class="WHIT">
+<span class='line'>601</span> </span><span class="COMM">// for non-JSON values.</span><span class="WHIT">
+<span class='line'>602</span> 
+<span class='line'>603</span> </span><span class="WHIT">                </span><span class="NAME">length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">value.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>604</span> </span><span class="WHIT">                </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>605</span> </span><span class="WHIT">                    </span><span class="NAME">partial</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">str</span><span class="PUNC">(</span><span class="NAME">i</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="STRN">'null'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>606</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>607</span> 
+<span class='line'>608</span> </span><span class="COMM">// Join all of the elements together, separated with commas, and wrap them in</span><span class="WHIT">
+<span class='line'>609</span> </span><span class="COMM">// brackets.</span><span class="WHIT">
+<span class='line'>610</span> 
+<span class='line'>611</span> </span><span class="WHIT">                </span><span class="NAME">v</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">partial.length</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="WHIT">
+<span class='line'>612</span> </span><span class="WHIT">                    </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="STRN">'[]'</span><span class="WHIT">
+<span class='line'>613</span> </span><span class="WHIT">                    </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">gap</span><span class="WHIT">
+<span class='line'>614</span> </span><span class="WHIT">                    </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="STRN">'[\n'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">gap</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">partial.join</span><span class="PUNC">(</span><span class="STRN">',\n'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">gap</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'\n'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">mind</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">']'</span><span class="WHIT">
+<span class='line'>615</span> </span><span class="WHIT">                    </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'['</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">partial.join</span><span class="PUNC">(</span><span class="STRN">','</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">']'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>616</span> </span><span class="WHIT">                </span><span class="NAME">gap</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">mind</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>617</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">v</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>618</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>619</span> 
+<span class='line'>620</span> </span><span class="COMM">// If the replacer is an array, use it to select the members to be stringified.</span><span class="WHIT">
+<span class='line'>621</span> 
+<span class='line'>622</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">rep</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">rep</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'object'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>623</span> </span><span class="WHIT">                </span><span class="NAME">length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">rep.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>624</span> </span><span class="WHIT">                </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>625</span> </span><span class="WHIT">                    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">rep</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'string'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>626</span> </span><span class="WHIT">                        </span><span class="NAME">k</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">rep</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>627</span> </span><span class="WHIT">                        </span><span class="NAME">v</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">str</span><span class="PUNC">(</span><span class="NAME">k</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>628</span> </span><span class="WHIT">                        </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">v</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>629</span> </span><span class="WHIT">                            </span><span class="NAME">partial.push</span><span class="PUNC">(</span><span class="NAME">quote</span><span class="PUNC">(</span><span class="NAME">k</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">gap</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="STRN">': '</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">':'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">v</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>630</span> </span><span class="WHIT">                        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>631</span> </span><span class="WHIT">                    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>632</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>633</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>634</span> 
+<span class='line'>635</span> </span><span class="COMM">// Otherwise, iterate through all of the keys in the object.</span><span class="WHIT">
+<span class='line'>636</span> 
+<span class='line'>637</span> </span><span class="WHIT">                </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">k</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>638</span> </span><span class="WHIT">                    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">Object.prototype.hasOwnProperty.call</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">k</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>639</span> </span><span class="WHIT">                        </span><span class="NAME">v</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">str</span><span class="PUNC">(</span><span class="NAME">k</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>640</span> </span><span class="WHIT">                        </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">v</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>641</span> </span><span class="WHIT">                            </span><span class="NAME">partial.push</span><span class="PUNC">(</span><span class="NAME">quote</span><span class="PUNC">(</span><span class="NAME">k</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">gap</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="STRN">': '</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">':'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">v</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>642</span> </span><span class="WHIT">                        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>643</span> </span><span class="WHIT">                    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>644</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>645</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>646</span> 
+<span class='line'>647</span> </span><span class="COMM">// Join all of the member texts together, separated with commas,</span><span class="WHIT">
+<span class='line'>648</span> </span><span class="COMM">// and wrap them in braces.</span><span class="WHIT">
+<span class='line'>649</span> 
+<span class='line'>650</span> </span><span class="WHIT">            </span><span class="NAME">v</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">partial.length</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="WHIT">
+<span class='line'>651</span> </span><span class="WHIT">                </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="STRN">'{}'</span><span class="WHIT">
+<span class='line'>652</span> </span><span class="WHIT">                </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">gap</span><span class="WHIT">
+<span class='line'>653</span> </span><span class="WHIT">                </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="STRN">'{\n'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">gap</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">partial.join</span><span class="PUNC">(</span><span class="STRN">',\n'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">gap</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'\n'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">mind</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'}'</span><span class="WHIT">
+<span class='line'>654</span> </span><span class="WHIT">                </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'{'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">partial.join</span><span class="PUNC">(</span><span class="STRN">','</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'}'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>655</span> </span><span class="WHIT">            </span><span class="NAME">gap</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">mind</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>656</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">v</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>657</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>658</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>659</span> 
+<span class='line'>660</span> </span><span class="COMM">// If the JSON object does not yet have a stringify method, give it one.</span><span class="WHIT">
+<span class='line'>661</span> 
+<span class='line'>662</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">JSON.stringify</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="STRN">'function'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>663</span> </span><span class="WHIT">        </span><span class="NAME">JSON.stringify</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">replacer</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">space</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>664</span> 
+<span class='line'>665</span> </span><span class="COMM">// The stringify method takes a value and an optional replacer, and an optional</span><span class="WHIT">
+<span class='line'>666</span> </span><span class="COMM">// space parameter, and returns a JSON text. The replacer can be a function</span><span class="WHIT">
+<span class='line'>667</span> </span><span class="COMM">// that can replace values, or an array of strings that will select the keys.</span><span class="WHIT">
+<span class='line'>668</span> </span><span class="COMM">// A default replacer method can be provided. Use of the space parameter can</span><span class="WHIT">
+<span class='line'>669</span> </span><span class="COMM">// produce text that is more easily readable.</span><span class="WHIT">
+<span class='line'>670</span> 
+<span class='line'>671</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>672</span> </span><span class="WHIT">            </span><span class="NAME">gap</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>673</span> </span><span class="WHIT">            </span><span class="NAME">indent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>674</span> 
+<span class='line'>675</span> </span><span class="COMM">// If the space parameter is a number, make an indent string containing that</span><span class="WHIT">
+<span class='line'>676</span> </span><span class="COMM">// many spaces.</span><span class="WHIT">
+<span class='line'>677</span> 
+<span class='line'>678</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">space</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'number'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>679</span> </span><span class="WHIT">                </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">space</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>680</span> </span><span class="WHIT">                    </span><span class="NAME">indent</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">' '</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>681</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>682</span> 
+<span class='line'>683</span> </span><span class="COMM">// If the space parameter is a string, it will be used as the indent string.</span><span class="WHIT">
+<span class='line'>684</span> 
+<span class='line'>685</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">space</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'string'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>686</span> </span><span class="WHIT">                </span><span class="NAME">indent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">space</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>687</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>688</span> 
+<span class='line'>689</span> </span><span class="COMM">// If there is a replacer, it must be a function or an array.</span><span class="WHIT">
+<span class='line'>690</span> </span><span class="COMM">// Otherwise, throw an error.</span><span class="WHIT">
+<span class='line'>691</span> 
+<span class='line'>692</span> </span><span class="WHIT">            </span><span class="NAME">rep</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">replacer</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>693</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">replacer</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">replacer</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="STRN">'function'</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT">
+<span class='line'>694</span> </span><span class="WHIT">                    </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">replacer</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="STRN">'object'</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT">
+<span class='line'>695</span> </span><span class="WHIT">                    </span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">replacer.length</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="STRN">'number'</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>696</span> </span><span class="WHIT">                </span><span class="KEYW">throw</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">Error</span><span class="PUNC">(</span><span class="STRN">'JSON.stringify'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>697</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>698</span> 
+<span class='line'>699</span> </span><span class="COMM">// Make a fake root object containing our value under the key of ''.</span><span class="WHIT">
+<span class='line'>700</span> </span><span class="COMM">// Return the result of stringifying the value.</span><span class="WHIT">
+<span class='line'>701</span> 
+<span class='line'>702</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">str</span><span class="PUNC">(</span><span class="STRN">''</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="STRN">''</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>703</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>704</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>705</span> 
+<span class='line'>706</span> 
+<span class='line'>707</span> </span><span class="COMM">// If the JSON object does not yet have a parse method, give it one.</span><span class="WHIT">
+<span class='line'>708</span> 
+<span class='line'>709</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">JSON.parse</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="STRN">'function'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>710</span> </span><span class="WHIT">        </span><span class="NAME">JSON.parse</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">text</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">reviver</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>711</span> 
+<span class='line'>712</span> </span><span class="COMM">// The parse method takes a text and an optional reviver function, and returns</span><span class="WHIT">
+<span class='line'>713</span> </span><span class="COMM">// a JavaScript value if the text is a valid JSON text.</span><span class="WHIT">
+<span class='line'>714</span> 
+<span class='line'>715</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">j</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>716</span> 
+<span class='line'>717</span> </span><span class="WHIT">            </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">walk</span><span class="PUNC">(</span><span class="NAME">holder</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">key</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>718</span> 
+<span class='line'>719</span> </span><span class="COMM">// The walk method is used to recursively walk the resulting structure so</span><span class="WHIT">
+<span class='line'>720</span> </span><span class="COMM">// that modifications can be made.</span><span class="WHIT">
+<span class='line'>721</span> 
+<span class='line'>722</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">k</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">v</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">holder</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>723</span> </span><span class="WHIT">                </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'object'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>724</span> </span><span class="WHIT">                    </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">k</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>725</span> </span><span class="WHIT">                        </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">Object.prototype.hasOwnProperty.call</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">k</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>726</span> </span><span class="WHIT">                            </span><span class="NAME">v</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">walk</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">k</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>727</span> </span><span class="WHIT">                            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">v</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="NAME">undefined</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>728</span> </span><span class="WHIT">                                </span><span class="NAME">value</span><span class="PUNC">[</span><span class="NAME">k</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">v</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>729</span> </span><span class="WHIT">                            </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>730</span> </span><span class="WHIT">                                </span><span class="KEYW">delete</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">[</span><span class="NAME">k</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>731</span> </span><span class="WHIT">                            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>732</span> </span><span class="WHIT">                        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>733</span> </span><span class="WHIT">                    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>734</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>735</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">reviver.call</span><span class="PUNC">(</span><span class="NAME">holder</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">key</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>736</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>737</span> 
+<span class='line'>738</span> 
+<span class='line'>739</span> </span><span class="COMM">// Parsing happens in four stages. In the first stage, we replace certain</span><span class="WHIT">
+<span class='line'>740</span> </span><span class="COMM">// Unicode characters with escape sequences. JavaScript handles many characters</span><span class="WHIT">
+<span class='line'>741</span> </span><span class="COMM">// incorrectly, either silently deleting them, or treating them as line endings.</span><span class="WHIT">
+<span class='line'>742</span> 
+<span class='line'>743</span> </span><span class="WHIT">            </span><span class="NAME">text</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">String</span><span class="PUNC">(</span><span class="NAME">text</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>744</span> </span><span class="WHIT">            </span><span class="NAME">cx.lastIndex</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>745</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">cx.test</span><span class="PUNC">(</span><span class="NAME">text</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>746</span> </span><span class="WHIT">                </span><span class="NAME">text</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">text.replace</span><span class="PUNC">(</span><span class="NAME">cx</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">a</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>747</span> </span><span class="WHIT">                    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="STRN">'\\u'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>748</span> </span><span class="WHIT">                        </span><span class="PUNC">(</span><span class="STRN">'0000'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">a.charCodeAt</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">toString</span><span class="PUNC">(</span><span class="NUMB">16</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">slice</span><span class="PUNC">(</span><span class="PUNC">-</span><span class="NUMB">4</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>749</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>750</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>751</span> 
+<span class='line'>752</span> </span><span class="COMM">// In the second stage, we run the text against regular expressions that look</span><span class="WHIT">
+<span class='line'>753</span> </span><span class="COMM">// for non-JSON patterns. We are especially concerned with '()' and 'new'</span><span class="WHIT">
+<span class='line'>754</span> </span><span class="COMM">// because they can cause invocation, and '=' because it can cause mutation.</span><span class="WHIT">
+<span class='line'>755</span> </span><span class="COMM">// But just to be safe, we want to reject all unexpected forms.</span><span class="WHIT">
+<span class='line'>756</span> 
+<span class='line'>757</span> </span><span class="COMM">// We split the second stage into 4 regexp operations in order to work around</span><span class="WHIT">
+<span class='line'>758</span> </span><span class="COMM">// crippling inefficiencies in IE's and Safari's regexp engines. First we</span><span class="WHIT">
+<span class='line'>759</span> </span><span class="COMM">// replace the JSON backslash pairs with '@' (a non-JSON character). Second, we</span><span class="WHIT">
+<span class='line'>760</span> </span><span class="COMM">// replace all simple value tokens with ']' characters. Third, we delete all</span><span class="WHIT">
+<span class='line'>761</span> </span><span class="COMM">// open brackets that follow a colon or comma or that begin the text. Finally,</span><span class="WHIT">
+<span class='line'>762</span> </span><span class="COMM">// we look to see that the remaining characters are only whitespace or ']' or</span><span class="WHIT">
+<span class='line'>763</span> </span><span class="COMM">// ',' or ':' or '{' or '}'. If that is so, then the text is safe for eval.</span><span class="WHIT">
+<span class='line'>764</span> 
+<span class='line'>765</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="REGX">/^[\],:{}\s]*$/</span><span class="WHIT">
+<span class='line'>766</span> </span><span class="WHIT">                    </span><span class="PUNC">.</span><span class="NAME">test</span><span class="PUNC">(</span><span class="NAME">text.replace</span><span class="PUNC">(</span><span class="REGX">/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">'@'</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'>767</span> </span><span class="WHIT">                        </span><span class="PUNC">.</span><span class="NAME">replace</span><span class="PUNC">(</span><span class="REGX">/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">']'</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'>768</span> </span><span class="WHIT">                        </span><span class="PUNC">.</span><span class="NAME">replace</span><span class="PUNC">(</span><span class="REGX">/(?:^|:|,)(?:\s*\[)+/g</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>769</span> 
+<span class='line'>770</span> </span><span class="COMM">// In the third stage we use the eval function to compile the text into a</span><span class="WHIT">
+<span class='line'>771</span> </span><span class="COMM">// JavaScript structure. The '{' operator is subject to a syntactic ambiguity</span><span class="WHIT">
+<span class='line'>772</span> </span><span class="COMM">// in JavaScript: it can begin a block or an object literal. We wrap the text</span><span class="WHIT">
+<span class='line'>773</span> </span><span class="COMM">// in parens to eliminate the ambiguity.</span><span class="WHIT">
+<span class='line'>774</span> 
+<span class='line'>775</span> </span><span class="WHIT">                </span><span class="NAME">j</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">eval</span><span class="PUNC">(</span><span class="STRN">'('</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">text</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">')'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>776</span> 
+<span class='line'>777</span> </span><span class="COMM">// In the optional fourth stage, we recursively walk the new structure, passing</span><span class="WHIT">
+<span class='line'>778</span> </span><span class="COMM">// each name/value pair to a reviver function for possible transformation.</span><span class="WHIT">
+<span class='line'>779</span> 
+<span class='line'>780</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">reviver</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">'function'</span><span class="WHIT">
+<span class='line'>781</span> </span><span class="WHIT">                    </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">walk</span><span class="PUNC">(</span><span class="PUNC">{</span><span class="STRN">''</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">j</span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'>782</span> </span><span class="WHIT">                    </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">j</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>783</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>784</span> 
+<span class='line'>785</span> </span><span class="COMM">// If the text is not JSON parseable, then a SyntaxError is thrown.</span><span class="WHIT">
+<span class='line'>786</span> 
+<span class='line'>787</span> </span><span class="WHIT">            </span><span class="KEYW">throw</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">SyntaxError</span><span class="PUNC">(</span><span class="STRN">'JSON.parse'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>788</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>789</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>790</span> </span><span class="PUNC">}</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>791</span> 
+<span class='line'>792</span> </span><span class="COMM">/*-----------------------------------------------------------------------------
+<span class='line'>793</span>  * Queue.js
+<span class='line'>794</span>  * 
+<span class='line'>795</span>  * A function to represent a queue
+<span class='line'>796</span>  * 
+<span class='line'>797</span>  * Created by Stephen Morley - http://code.stephenmorley.org/ - and released under
+<span class='line'>798</span>  * the terms of the CC0 1.0 Universal legal code:
+<span class='line'>799</span>  * 
+<span class='line'>800</span>  * http://creativecommons.org/publicdomain/zero/1.0/legalcode
+<span class='line'>801</span>  *---------------------------------------------------------------------------*/</span><span class="WHIT">
+<span class='line'>802</span> 
+<span class='line'>803</span> </span><span class="COMM">/* Creates a new queue. A queue is a first-in-first-out (FIFO) data structure -
+<span class='line'>804</span>  * items are added to the end of the queue and removed from the front.
+<span class='line'>805</span>  */</span><span class="WHIT">
+<span class='line'>806</span> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">Queue</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>807</span> 
+<span class='line'>808</span> </span><span class="WHIT">  </span><span class="COMM">// initialise the queue and offset</span><span class="WHIT">
+<span class='line'>809</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">queue</span><span class="WHIT">  </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>810</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">offset</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>811</span> 
+<span class='line'>812</span> </span><span class="WHIT">  </span><span class="COMM">/* Returns the length of the queue.
+<span class='line'>813</span>    */</span><span class="WHIT">
+<span class='line'>814</span> </span><span class="WHIT">  </span><span class="NAME">this.getLength</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>815</span> 
+<span class='line'>816</span> </span><span class="WHIT">    </span><span class="COMM">// return the length of the queue</span><span class="WHIT">
+<span class='line'>817</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">queue.length</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NAME">offset</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>818</span> 
+<span class='line'>819</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>820</span> 
+<span class='line'>821</span> </span><span class="WHIT">  </span><span class="COMM">/* Returns true if the queue is empty, and false otherwise.
+<span class='line'>822</span>    */</span><span class="WHIT">
+<span class='line'>823</span> </span><span class="WHIT">  </span><span class="NAME">this.isEmpty</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>824</span> 
+<span class='line'>825</span> </span><span class="WHIT">    </span><span class="COMM">// return whether the queue is empty</span><span class="WHIT">
+<span class='line'>826</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">queue.length</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>827</span> 
+<span class='line'>828</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>829</span> 
+<span class='line'>830</span> </span><span class="WHIT">  </span><span class="COMM">/* Enqueues the specified item. The parameter is:
+<span class='line'>831</span>    *
+<span class='line'>832</span>    * item - the item to enqueue
+<span class='line'>833</span>    */</span><span class="WHIT">
+<span class='line'>834</span> </span><span class="WHIT">  </span><span class="NAME">this.enqueue</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>835</span> 
+<span class='line'>836</span> </span><span class="WHIT">    </span><span class="COMM">// enqueue the item</span><span class="WHIT">
+<span class='line'>837</span> </span><span class="WHIT">    </span><span class="NAME">queue.push</span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>838</span> 
+<span class='line'>839</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>840</span> 
+<span class='line'>841</span> </span><span class="WHIT">  </span><span class="COMM">/* Dequeues an item and returns it. If the queue is empty then undefined is
+<span class='line'>842</span>    * returned.
+<span class='line'>843</span>    */</span><span class="WHIT">
+<span class='line'>844</span> </span><span class="WHIT">  </span><span class="NAME">this.dequeue</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>845</span> 
+<span class='line'>846</span> </span><span class="WHIT">    </span><span class="COMM">// if the queue is empty, return undefined</span><span class="WHIT">
+<span class='line'>847</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">queue.length</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">undefined</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>848</span> 
+<span class='line'>849</span> </span><span class="WHIT">    </span><span class="COMM">// store the item at the front of the queue</span><span class="WHIT">
+<span class='line'>850</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">item</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">queue</span><span class="PUNC">[</span><span class="NAME">offset</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>851</span> 
+<span class='line'>852</span> </span><span class="WHIT">    </span><span class="COMM">// increment the offset and remove the free space if necessary</span><span class="WHIT">
+<span class='line'>853</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">++</span><span class="WHIT"> </span><span class="NAME">offset</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="WHIT"> </span><span class="PUNC">>=</span><span class="WHIT"> </span><span class="NAME">queue.length</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>854</span> </span><span class="WHIT">      </span><span class="NAME">queue</span><span class="WHIT">  </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">queue.slice</span><span class="PUNC">(</span><span class="NAME">offset</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>855</span> </span><span class="WHIT">      </span><span class="NAME">offset</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>856</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>857</span> 
+<span class='line'>858</span> </span><span class="WHIT">    </span><span class="COMM">// return the dequeued item</span><span class="WHIT">
+<span class='line'>859</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>860</span> 
+<span class='line'>861</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>862</span> 
+<span class='line'>863</span> </span><span class="WHIT">  </span><span class="COMM">/* Returns the item at the front of the queue (without dequeuing it). If the
+<span class='line'>864</span>    * queue is empty then undefined is returned.
+<span class='line'>865</span>    */</span><span class="WHIT">
+<span class='line'>866</span> </span><span class="WHIT">  </span><span class="NAME">this.peek</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>867</span> 
+<span class='line'>868</span> </span><span class="WHIT">    </span><span class="COMM">// return the item at the front of the queue</span><span class="WHIT">
+<span class='line'>869</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">queue.length</span><span class="WHIT"> </span><span class="PUNC">></span><span class="WHIT"> </span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">queue</span><span class="PUNC">[</span><span class="NAME">offset</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">undefined</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>870</span> 
+<span class='line'>871</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>872</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>873</span> </span></pre></body></html>

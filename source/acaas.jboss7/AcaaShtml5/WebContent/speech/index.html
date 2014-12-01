@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+	<meta charset="utf-8" />
+	<title>PoC: Fala para Texto/Libras - AcaaS (Acessibilidade como um Servi&ccedil;o)</title>
+	<script src="../jscript/acaas.js"></script> 
+	<script src="../jscript/speech.js"></script> 
+	<script src="../jscript/chkbrows.js"></script> 
+	<link rel="stylesheet" type="text/css" href="../css/index.css">
+	<link rel="shortcut icon" href="../favicon.ico">
+	<link rel="icon" href="../favicon.ico">
+</head>
+
+<body>
+	<header>
+		<img id="logo" src="../images/logo.png" alt="AcaaS">
+		<h1>AcaaS (Acessibilidade como um Servi&ccedil;o)</h1>
+	</header>
+	<nav>
+		<ul>
+			<li><a href="http://acaas.robsonmartins.com">P&aacute;gina do Projeto</a></li>
+			<li><a href="../">Exemplos (HTML5)</a></li>
+			<li><a href="../text/">Texto para Fala/Libras</a></li>
+			<li><a href="../speech/">Fala para Texto/Libras</a></li>
+		</ul>
+	</nav>
+	<article>
+		<header><h2>Fala para Texto/Libras</h2></header>
+		<div id="text_panel">
+			<textarea id="output" readonly="readonly" placeholder="Texto reconhecido"></textarea><br/>		
+			<button id="btn_start" type="button" onclick="start()" disabled="disabled">Traduzir</button>&nbsp;
+			<button id="btn_stop" type="button" onclick="stop()" disabled="disabled">&nbsp;Parar&nbsp;&nbsp;</button>&nbsp;&nbsp;
+			<span id="status_text"></span>
+		</div>
+		<div id="video_panel">
+			<video id="video_player" preload="auto" poster="../images/libras.png" src="#"></video>
+		</div>
+	</article>
+	<footer>
+		Robson Martins (<a href="http://www.robsonmartins.com" target="_blank">http://www.robsonmartins.com</a>)
+	</footer>
+	<script src="index.js"></script> 
+</body>
+
+</html>
+

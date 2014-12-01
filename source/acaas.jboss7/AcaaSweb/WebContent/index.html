@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+	<meta charset="utf-8" />
+	<title>AcaaS (Acessibilidade como um Servi&ccedil;o) - Robson de Sousa Martins</title>
+	<link rel="stylesheet" type="text/css" href="css/index.css">
+	<link rel="shortcut icon" href="favicon.ico">
+	<link rel="icon" href="favicon.ico">
+</head>
+
+<body>
+	<header>
+		<img id="logo" src="images/logo.png" alt="AcaaS">
+		<h1>AcaaS (Acessibilidade como um Servi&ccedil;o)</h1>
+	</header>
+	<nav>
+		<ul>
+			<li><a href="./">P&aacute;gina do Projeto</a></li>
+			<li><a href="http://www.robsonmartins.com/inform/arqsoft/acaas/">Exemplos (HTML5)</a></li>
+			<li><a target="_blank" href="doc/java/">Documenta&ccedil;&atilde;o dos Servi&ccedil;os</a></li>
+			<li><a target="_blank" href="doc/js/">Documenta&ccedil;&atilde;o dos Exemplos</a></li>
+		</ul>
+	</nav>
+	<article>
+		<p><b>Esta &eacute; a p&aacute;gina inicial do Projeto AcaaS (<em>Accessibility as a Service</em> - Acessibilidade como um Servi&ccedil;o)</b>.</p>
+		<p>O objetivo deste trabalho &eacute; propor uma solu&ccedil;&atilde;o de arquitetura que permita encarar a acessibilidade como um servi&ccedil;o reutiliz&aacute;vel, multiplataforma e escal&aacute;vel,
+		de modo a facilitar a implementa&ccedil;&atilde;o de aplica&ccedil;&otilde;es &quot;acess&iacute;veis&quot;, aumentando a sua qualidade e reduzindo o custo de desenvolvimento.</p>
+		<p>Para demonstrar a arquitetura proposta, foram implementados alguns servi&ccedil;os de acessibilidade, usando arquitetura Java EE, implantados em um servi&ccedil;o de infraestrutura na nuvem
+		(<a target="_blank" href="https://www.openshift.com">Red Hat OpenShift</a>).
+		Todos os servi&ccedil;os operam atrav&eacute;s de dados JSON sobre requisi&ccedil;&otilde;es HTTP/REST.</p>
+		<p>Al&eacute;m disso, foram implementados <a href="http://www.robsonmartins.com/inform/arqsoft/acaas/">dois exemplos</a> de utiliza&ccedil;&atilde;o dos servi&ccedil;os, usando somente HTML5 e JavaScript.</p>
+		<p><b>Arquitetura</b>:</p>
+		<p><img src="images/acaas.png" alt="Arquitetura da Implementa&ccedil;&atilde;o"></p>
+		<p><b>Servi&ccedil;os implementados</b>:</p>
+ 		<table>
+ 			<thead>
+ 				<tr><th>Endere&ccedil;o                        </th><th>Requisi&ccedil;&atilde;o</th><th>Resposta              </th><th>M&eacute;todo</th><th>Descri&ccedil;&atilde;o         </th></tr>
+ 			</thead>
+ 			<tbody>
+ 				<tr><td><code>/acaas/tts</code>                </td><td>text/plain            </td><td>application/json        </td><td>GET,POST</td><td><em>Text To Speech</em> (TTS).       </td></tr>
+ 				<tr><td><code>/acaas/tts/media/{id}</code>     </td><td>                      </td><td>audio/wav*,x-flac       </td><td>GET     </td><td>M&iacute;dia do <em>TTS</em>.        </td></tr>
+ 				<tr><td><code>/acaas/stt</code>                </td><td>audio/wav*,x-flac,mpeg</td><td>application/json        </td><td>POST    </td><td><em>Speech To Text</em> (STT).       </td></tr>
+ 				<tr><td><code>/acaas/t2libras</code>           </td><td>text/plain            </td><td>application/json        </td><td>GET,POST</td><td><em>Text To Libras</em> (T2Libras).  </td></tr>
+ 				<tr><td><code>/acaas/t2libras/media/{id}</code></td><td>                      </td><td>video/ogg*,mp4;image/jpg</td><td>GET     </td><td>M&iacute;dia do <em>T2Libras</em>.   </td></tr>
+ 				<tr><td><code>/acaas/s2libras</code>           </td><td>audio/wav*,x-flac,mpeg</td><td>application/json        </td><td>POST    </td><td><em>Speech To Libras</em> (S2Libras).</td></tr>
+ 				<tr><td><code>/acaas/s2libras/media/{id}</code></td><td>                      </td><td>video/ogg*,mp4;image/jpg</td><td>GET     </td><td>M&iacute;dia do <em>S2Libras</em>.   </td></tr>
+ 			</tbody>
+ 		</table>
+		<p><b>Servi&ccedil;os utilizados nesta implementa&ccedil;&atilde;o</b>:</p>
+		<ul>
+			<li>Servi&ccedil;o TTS do <a target="_blank" href="http://translate.google.com">Tradutor Google</a></li>
+			<li>Google <a target="_blank" href="https://gist.github.com/alotaiba/1730160">Speech To Text API</a></li>
+			<li>Dicion&aacute;rio de Libras do <a target="_blank" href="http://www.acessobrasil.org.br/libras/">Acessibilidade Brasil</a></li>
+			<li>Dicion&aacute;rio Online de Portugu&ecirc;s <a target="_blank" href="http://www.dicio.com.br/">Dicio</a></li>
+			<li>Dicion&aacute;rio Informal <a target="_blank" href="http://www.dicionarioinformal.com.br/">Dicion&aacute;rio inFormal</a></li>
+		</ul>
+	</article>
+	<footer>
+		Robson Martins (<a href="http://www.robsonmartins.com" target="_blank">http://www.robsonmartins.com</a>)
+	</footer>
+</body>
+
+</html>
+
