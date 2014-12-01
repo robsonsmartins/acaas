@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="generator" content="JsDoc Toolkit" />
+		<title>AcaasConnection | AcaaS JavaScript Client Source Documentation</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+		<meta name="mobileoptimized" content="0" />
+	
+		<link rel="stylesheet" href="../css/all.css" media="all" />
+		<link rel="stylesheet" href="../css/handheld.css" media="only screen and (max-width: 660px)" />
+		<link rel="stylesheet" href="../css/handheld.css" media="handheld" />
+		<link rel="stylesheet" href="../css/screen.css" media="screen and (min-width: 661px)" />
+
+		<script src="../javascript/all.js"></script>
+		<!--[if lt IE 9]>
+			<script src="../javascript/html5.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+<div class="index">
+	<div class="menu">
+		<div class="indexLinks">
+			<a href="../allclasses.html">Classes</a>
+			<a href="../index.html">Files</a>
+		</div>
+	
+		<h2 class="heading1">Classes</h2>
+		
+		<input type="text" name="classFilter" class="classFilter" id="ClassFilter" placeholder="Filter"></input>
+		
+		<nav>
+			<ul class="classList" id="ClassList">
+				
+					<li><a href="../symbols/Acaas.html">Acaas</a></li>
+				
+					<li><a href="../symbols/AcaasConnection.html">AcaasConnection</a></li>
+				
+					<li><a href="../symbols/AcaasMediaService.html">AcaasMediaService</a></li>
+				
+					<li><a href="../symbols/AcaasService.html">AcaasService</a></li>
+				
+					<li><a href="../symbols/CheckBrowser.html">CheckBrowser</a></li>
+				
+					<li><a href="../symbols/Speech.html">Speech</a></li>
+				
+			</ul>
+		</nav>
+	</div>
+	<div class="fineprint" style="clear:both">
+		<footer>
+			
+			Documentation generator: <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0<br />
+			Template: <a href="http://www.thebrightlines.com/2010/05/06/new-template-for-jsdoctoolkit-codeview/" target="_blank">Codeview</a> 1.2<br />
+			Generated on:
+			<time datetime='2013-8-16' pubdate>2013-8-16 13:43</time>
+		</footer>
+	</div>
+</div>
+
+<div class="index indexStatic"></div>
+
+<div class="content">
+	<div class="innerContent">
+		<article>
+			<header>
+				<h1 class="classTitle">
+					
+					Class <span>AcaasConnection</span>
+				</h1>
+				
+				<div class="intro">
+					<p class="description summary">
+						Implementa conexao HTTP a um Servico AcaaS.
+					</p>
+						
+					
+						<ul class="summary">
+							
+							
+							
+								<li>Defined in: <a href="../symbols/src/acaas.js.html">acaas.js</a></li>
+							
+							
+						</ul>
+					
+				</div>
+			</header>
+			
+			
+				<section>
+					<div class="props">
+						<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class AcaasConnection.">
+							<caption class="sectionTitle">Class Summary</caption>
+							<thead>
+								<tr>
+									<th scope="col">Constructor Attributes</th>
+									<th scope="col">Constructor Name and Description</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="attributes">&nbsp;</td>
+									<td class="nameDescription" >
+										<div class="fixedFont">
+											<b><a href="../symbols/AcaasConnection.html#constructor">AcaasConnection</a></b>()
+										</div>
+										<div class="description">Cria um objeto para conectar a um servico AcaaS.</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+			
+			
+			
+	<!--
+	#### METHODS SUMMARY
+	-->
+			
+				<section>
+					
+					
+					<div class="props">
+						<h2 class="sectionTitle">Method Summary</h2>
+						
+						
+							<nav>
+								<table class="summaryTable" id="MethodsList" cellspacing="0" summary="A summary of the methods documented in the class AcaasConnection.">
+									<thead>
+										<tr>
+											<th scope="col">Method Attributes</th>
+											<th scope="col">Method Name and Description</th>
+										</tr>
+									</thead>
+									
+									<tbody>
+										
+										
+											<tr
+												 class='item0'
+											>
+												<td class="attributes">&lt;static&gt; &nbsp;</td>
+												<td class="nameDescription">
+													<div class="fixedFont">AcaasConnection.<b><a href="../symbols/AcaasConnection.html#.getMedia">getMedia</a></b>(url, info, mediaType, async, onData, onError)
+													</div>
+													<div class="description">Consulta um servico de midia do AcaaS (via HTTP GET),
+  e retorna a resposta como um Blob.</div>
+												</td>
+											</tr>
+										
+											<tr
+												 class='item1'
+											>
+												<td class="attributes">&lt;static&gt; &nbsp;</td>
+												<td class="nameDescription">
+													<div class="fixedFont">AcaasConnection.<b><a href="../symbols/AcaasConnection.html#.queryService">queryService</a></b>(url, data, async, onData, onError)
+													</div>
+													<div class="description">Consulta um servico do AcaaS (via HTTP POST),
+  e retorna a resposta como um Objeto JSON.</div>
+												</td>
+											</tr>
+										
+									</tbody>
+								</table>
+							</nav>
+						
+					
+						
+					</div>
+				</section>
+			
+			
+	<!--
+	#### EVENTS SUMMARY
+	-->
+			
+	<!--
+	#### CONSTRUCTOR DETAILS
+	-->
+			
+				<section>
+					<div class="details props">
+						<div class="innerProps">
+							<h2 class="sectionTitle" id="constructor">
+								Class Detail
+							</h2>
+							
+							<div class="fixedFont">
+								<b>AcaasConnection</b>()
+							</div>
+							
+							<div class="description">
+								Cria um objeto para conectar a um servico AcaaS.
+								
+							</div>
+							
+							
+						
+							
+							
+							
+						</div>
+					</div>
+				</section>
+			
+	<!--
+	#### FIELD DETAILS
+	-->
+			
+	<!--
+	#### METHOD DETAILS
+	-->		
+			
+				<section>
+					<div class="details props">
+						<div class="innerProps">
+							<h2 class="sectionTitle">
+								Method Detail
+							</h2>
+							
+							<ul class="methodDetail" id="MethodDetail">
+								
+								
+									<li 
+										 class='item0'
+									>
+										<div class="fixedFont heading" id=".getMedia">
+											<span class='lighter'>
+											&lt;static&gt; 
+											</span>
+											
+											
+											
+											<span class="light">AcaasConnection.</span><b>getMedia</b>(url, info, mediaType, async, onData, onError)
+										</div>
+										
+										<div class="description">
+											Consulta um servico de midia do AcaaS (via HTTP GET),
+  e retorna a resposta como um Blob.
+											
+											
+											
+											
+										</div>
+										
+										
+										
+										
+											<dl class="detailList params">
+												<dt class="heading">Parameters:</dt>
+												
+													<dt>
+														<span class="light fixedFont">{String}</span> <b>url</b>
+														
+													</dt>
+													<dd>URL do Servico AcaaS,
+  contendo todos parametros necessarios.</dd>
+												
+													<dt>
+														<span class="light fixedFont">{JsonObject}</span> <b>info</b>
+														<i>Optional</i>
+													</dt>
+													<dd>Objeto JSON com informacoes sobre a midia
+  requisitada.</dd>
+												
+													<dt>
+														<span class="light fixedFont">{String}</span> <b>mediaType</b>
+														
+													</dt>
+													<dd>Tipo MIME do formato desejado para a midia.</dd>
+												
+													<dt>
+														<span class="light fixedFont">{boolean}</span> <b>async</b>
+														<i>Optional</i>
+													</dt>
+													<dd>Indica se a requisicao sera' assincrona.</dd>
+												
+													<dt>
+														<span class="light fixedFont">{function(Blob data|JsonObject info)}</span> <b>onData</b>
+														<i>Optional</i>
+													</dt>
+													<dd>Callback do evento
+  disparado quando os dados de uma midia estao disponiveis.</dd>
+												
+													<dt>
+														<span class="light fixedFont">{function(Number status|String statusText)}</span> <b>onError</b>
+														<i>Optional</i>
+													</dt>
+													<dd>Callback
+  do evento disparado quando a requisicao resultou em erro.</dd>
+												
+											</dl>
+										
+										
+										
+										<div class="hr"></div>
+									</li>
+								
+									<li 
+										 class='item1'
+									>
+										<div class="fixedFont heading" id=".queryService">
+											<span class='lighter'>
+											&lt;static&gt; 
+											</span>
+											
+											
+											
+											<span class="light">AcaasConnection.</span><b>queryService</b>(url, data, async, onData, onError)
+										</div>
+										
+										<div class="description">
+											Consulta um servico do AcaaS (via HTTP POST),
+  e retorna a resposta como um Objeto JSON.
+											
+											
+											
+											
+										</div>
+										
+										
+										
+										
+											<dl class="detailList params">
+												<dt class="heading">Parameters:</dt>
+												
+													<dt>
+														<span class="light fixedFont">{String}</span> <b>url</b>
+														
+													</dt>
+													<dd>URL do Servico AcaaS,
+  contendo todos parametros necessarios.</dd>
+												
+													<dt>
+														<span class="light fixedFont">{Raw}</span> <b>data</b>
+														
+													</dt>
+													<dd>Dados para consultar (corpo da requisicao HTTP POST).</dd>
+												
+													<dt>
+														<span class="light fixedFont">{boolean}</span> <b>async</b>
+														<i>Optional</i>
+													</dt>
+													<dd>Indica se a requisicao sera' assincrona.</dd>
+												
+													<dt>
+														<span class="light fixedFont">{function(JsonObject data)}</span> <b>onData</b>
+														<i>Optional</i>
+													</dt>
+													<dd>Callback do evento
+  disparado quando os dados de uma midia estao disponiveis.</dd>
+												
+													<dt>
+														<span class="light fixedFont">{function(Number status|String statusText)}</span> <b>onError</b>
+														<i>Optional</i>
+													</dt>
+													<dd>Callback
+  do evento disparado quando a requisicao resultou em erro.</dd>
+												
+											</dl>
+										
+										
+										
+										
+									</li>
+								
+							</ul>
+						</div>
+					</div>
+				</section>
+			
+			
+	<!--
+	#### EVENT DETAILS
+	-->		
+			
+		</article>
+	</div>
+</div>
+
+		<script type="text/javascript">
+			wbos.CssTools.MediaQueryFallBack.LoadCss('../css/screen.css', '../css/handheld.css', 660)
+			codeview.classFilter.Init()
+		</script>
+	</body>
+</html>
+

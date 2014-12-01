@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="AcaaS JS" default="jsdoc" basedir=".">
+	<property name="src.dir" location="${basedir}/src" />
+	<property name="jsdoc.dir" location="${basedir}/lib/jsdoc" />
+	<property name="rhino.dir" location="${basedir}/lib/rhino" />
+    <property name="ant-task.dir" location="${basedir}/lib" />
+
+    <property name="out.dir" location="../04.AcaaSweb/WebContent/doc/js" />
+
+    <!-- Define the Ant Task -->
+	<taskdef name="jsdoctoolkit" classname="uk.co.darrenhurley.ant.tasks.JsDocToolkit" classpath="${rhino.dir}/js-1.7r2.jar;${ant-task.dir}/jsdoc-toolkit-ant-task-1.1.2.jar" />
+
+    <target name="jsdoc" depends="" description="Generate JsDoc.">
+        <jsdoctoolkit jsdochome="${jsdoc.dir}/" template="codeview" inputdir="${src.dir}" outputdir="${out.dir}" includeprivate="false">
+	    	<arg name="title" value="AcaaS JavaScript Client Source Documentation" />
+			<arg name="noGlobal" value="true" />
+			<arg name="index" value="files" />
+	 	</jsdoctoolkit>
+    </target>
+
+    <!-- Neat and Tidy, Tidy and Neat - best to clean up afterwards... -->
+    <target name="clean" description="Cleanup everything this build script creates.">
+        <delete dir="${out.dir}" />
+    </target>
+	
+    <target name="rename" description="Rename sources.">
+		<replace dir="${out.dir}" value="" token="_home_19390544866_Documentos_empregado_conserpro2013_eclipse_workspace_04.AcaaShtml5_src_">
+	  	<include name="**/*.html"/>
+		</replace>	
+	
+		<move todir="${out.dir}/symbols/src" includeemptydirs="false">
+	    	<fileset dir="${out.dir}/symbols/src" />
+	    	<mapper type="glob" from="_home_19390544866_Documentos_empregado_conserpro2013_eclipse_workspace_04.AcaaShtml5_src_*" to=""/>
+		</move>
+    </target>
+	
+</project>
